@@ -18,6 +18,7 @@ Clean, responsive UI with cards and statistics.
 
 Backend integration with Firebase Firestore for storing activity records.
 
+Optional: Can be adapted to use local storage for offline usage.
 
 Tech Stack
 
