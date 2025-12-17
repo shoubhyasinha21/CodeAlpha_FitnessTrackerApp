@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fitness Tracker App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    .card {
+      background: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      margin-bottom: 20px;
+    }
+    label {
+      font-weight: bold;
+    }
+    input, select, button {
+      width: 100%;
+      padding: 10px;
+      margin: 8px 0;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background: #4CAF50;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    .dashboard {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+    .stat {
+      text-align: center;
+      padding: 15px;
+      border-radius: 8px;
+      background: #e8f5e9;
+    }
+    .stat h2 {
+      margin: 0;
+      color: #2e7d32;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    th, td {
+      padding: 10px;
+      border-bottom: 1px solid #ddd;
+      text-align: center;
+    }
+    th {
+      background: #f0f0f0;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Fitness Tracker App</h1>
+
+    <!-- Log Activity -->
+    <div class="card">
+      <h2>Log Fitness Activity</h2>
+      <label>Exercise Type</label>
+      <select id="exercise">
+        <option>Walking</option>
+        <option>Running</option>
+        <option>Workout</option>
+        <option>Cycling</option>
+      </select>
+
+      <label>Duration (minutes)</label>
+      <input type="number" id="duration" placeholder="Enter duration" />
+
+      <label>Calories Burned</label>
+      <input type="number" id="calories" placeholder="Enter calories" />
+
+      <button onclick="addActivity()">Add Activity</button>
+    </div>
+
+    <!-- Dashboard -->
+    <div class="card">
+      <h2>Dashboard (Today)</h2>
+      <div class="dashboard">
+        <div class="stat">
+          <h2 id="totalWorkouts">0</h2>
+          <p>Workouts</p>
+        </div>
+        <div class="stat">
+          <h2 id="totalMinutes">0</h2>
+          <p>Total Minutes</p>
+        </div>
+        <div class="stat">
+          <h2 id="totalCalories">0</h2>
+          <p>Calories Burned</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Activity History -->
+    <div class="card">
+      <h2>Activity History</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Exercise</th>
+            <th>Duration (min)</th>
+            <th>Calories</th>
+          </tr>
+        </thead>
+        <tbody id="activityTable"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyDer95mXB56nj92e18BlD3Q8DXYei19DWc",
+  authDomain: "fitness-tracker-app-a5680.firebaseapp.com",
+  projectId: "fitness-tracker-app-a5680",
+  storageBucket: "fitness-tracker-app-a5680.firebasestorage.app",
+  messagingSenderId: "188494582836",
+  appId: "1:188494582836:web:5b5b305143a3dc9fa06661",
+  measurementId: "G-C7QLGF9409"
+};
+
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+
+  // Initialize Firestore
+  const db = firebase.firestore();
+</script>
+
+    <script>
+  const activitiesRef = db.collection("activities");
+
+  function addActivity() {
+    const exercise = document.getElementById('exercise').value;
+    const duration = Number(document.getElementById('duration').value);
+    const calories = Number(document.getElementById('calories').value);
+
+    if (!duration || !calories) {
+      alert("Please enter all details");
+      return;
+    }
+
+    activitiesRef.add({
+      exercise: exercise,
+      duration: duration,
+      calories: calories,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp()
+    });
+
+    document.getElementById('duration').value = '';
+    document.getElementById('calories').value = '';
+  }
+
+  function displayActivities() {
+    activitiesRef.orderBy("timestamp", "desc").onSnapshot(snapshot => {
+      const table = document.getElementById('activityTable');
+      table.innerHTML = '';
+
+      let totalMinutes = 0;
+      let totalCalories = 0;
+
+      snapshot.forEach(doc => {
+        const a = doc.data();
+        totalMinutes += a.duration;
+        totalCalories += a.calories;
+
+        table.innerHTML += `
+          <tr>
+            <td>${a.exercise}</td>
+            <td>${a.duration}</td>
+            <td>${a.calories}</td>
+          </tr>
+        `;
+      });
+
+      document.getElementById('totalWorkouts').innerText = snapshot.size;
+      document.getElementById('totalMinutes').innerText = totalMinutes;
+      document.getElementById('totalCalories').innerText = totalCalories;
+    });
+  }
+
+  displayActivities();
+</script>
+  
